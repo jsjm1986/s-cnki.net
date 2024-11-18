@@ -1,0 +1,140 @@
+:root {
+    --primary-color: #409EFF;
+    --success-color: #67C23A;
+    --warning-color: #E6A23C;
+    --danger-color: #F56C6C;
+    --info-color: #909399;
+    --text-primary: #303133;
+    --text-regular: #606266;
+    --text-secondary: #909399;
+    --border-color: #DCDFE6;
+    --page-background: #F5F7FA;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--page-background);
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.el-header {
+    background-color: white;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+
+.el-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.el-main {
+    padding-top: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.search-box {
+    margin-bottom: 20px;
+}
+
+.search-filters {
+    margin-top: 15px;
+}
+
+.article-card {
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.article-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.article-header {
+    margin-bottom: 15px;
+}
+
+.article-title {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+.article-title:hover {
+    text-decoration: underline;
+}
+
+.article-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.article-meta span {
+    margin-right: 15px;
+}
+
+.article-stats {
+    margin: 10px 0;
+}
+
+.article-stats .el-tag {
+    margin-right: 10px;
+}
+
+.article-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.analysis-content {
+    line-height: 1.6;
+    color: var(--text-regular);
+}
+
+.analysis-content h3 {
+    color: var(--text-primary);
+    margin: 20px 0 10px;
+}
+
+.analysis-content ul {
+    padding-left: 20px;
+}
+
+.analysis-loading {
+    padding: 20px;
+}
+
+.el-pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .el-main {
+        padding: 80px 10px 20px;
+    }
+    
+    .search-filters .el-col {
+        margin-bottom: 10px;
+    }
+    
+    .article-meta span {
+        display: block;
+        margin-bottom: 5px;
+    }
+} 

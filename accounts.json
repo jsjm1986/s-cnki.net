@@ -1,0 +1,12 @@
+{
+    "accounts": [
+        {
+            "username": "your_cnki_username_1",
+            "password": "your_cnki_password_1"
+        },
+        {
+            "username": "your_cnki_username_2",
+            "password": "your_cnki_password_2"
+        }
+    ]
+} 

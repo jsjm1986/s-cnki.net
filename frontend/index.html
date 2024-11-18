@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNKI文献智能分析系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <h1>CNKI文献智能分析系统</h1>
+            </el-header>
+            
+            <el-main>
+                <el-row :gutter="20">
+                    <el-col :span="24">
+                        <el-card class="search-box">
+                            <el-input
+                                v-model="searchQuery"
+                                placeholder="输入关键词搜索文献..."
+                                @keyup.enter="searchArticles">
+                                <template #append>
+                                    <el-button @click="searchArticles" :loading="loading">
+                                        搜索
+                                    </el-button>
+                                </template>
+                            </el-input>
+                            
+                            <el-row class="search-filters" v-if="showFilters">
+                                <el-col :span="6">
+                                    <el-select v-model="filters.year" placeholder="发表年份">
+                                        <el-option v-for="year in years" :key="year" :label="year" :value="year"/>
+                                    </el-select>
+                                </el-col>
+                                <el-col :span="6">
+                                    <el-select v-model="filters.type" placeholder="文献类型">
+                                        <el-option label="期刊论文" value="journal"/>
+                                        <el-option label="硕士论文" value="master"/>
+                                        <el-option label="博士论文" value="phd"/>
+                                    </el-select>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </el-col>
+                </el-row>
+
+                <!-- 搜索结果列表 -->
+                <el-row v-if="articles.length > 0">
+                    <el-col :span="24">
+                        <el-card v-for="article in articles" :key="article.id" class="article-card">
+                            <div class="article-header">
+                                <h2 class="article-title" @click="showArticleDetail(article)">
+                                    {{ article.title }}
+                                </h2>
+                                <div class="article-meta">
+                                    <span>作者：{{ article.authors }}</span>
+                                    <span>来源：{{ article.journal }}</span>
+                                    <span>发表日期：{{ article.date }}</span>
+                                </div>
+                            </div>
+                            <div class="article-stats">
+                                <el-tag>被引：{{ article.citations }}</el-tag>
+                                <el-tag type="success">下载：{{ article.downloads }}</el-tag>
+                            </div>
+                            <div class="article-actions">
+                                <el-button type="primary" @click="analyzePaper(article)">
+                                    智能分析
+                                </el-button>
+                                <el-button @click="downloadPDF(article)">
+                                    下载PDF
+                                </el-button>
+                            </div>
+                        </el-card>
+                        
+                        <el-pagination
+                            v-if="totalPages > 1"
+                            :current-page="currentPage"
+                            :page-size="20"
+                            :total="totalItems"
+                            @current-change="handlePageChange"
+                            layout="prev, pager, next"
+                        />
+                    </el-col>
+                </el-row>
+
+                <!-- 无搜索结果提示 -->
+                <el-empty v-else-if="hasSearched" description="未找到相关文献"/>
+
+                <!-- 在搜索框下方添加设置面板 -->
+                <el-row class="search-settings" v-if="showSettings">
+                    <el-col :span="24">
+                        <el-card>
+                            <template #header>
+                                <div class="card-header">
+                                    <span>高级设置</span>
+                                </div>
+                            </template>
+                            <el-form :model="searchSettings" label-width="120px">
+                                <el-form-item label="最大文献数量">
+                                    <el-input-number 
+                                        v-model="searchSettings.maxPapers" 
+                                        :min="10" 
+                                        :max="500"
+                                        :step="10"
+                                    />
+                                </el-form-item>
+                                <el-form-item label="最小引用次数">
+                                    <el-input-number 
+                                        v-model="searchSettings.minCitations" 
+                                        :min="0" 
+                                        :max="1000"
+                                    />
+                                </el-form-item>
+                                <el-form-item label="排序方式">
+                                    <el-select v-model="searchSettings.sortBy">
+                                        <el-option label="相关度" value="relevance"/>
+                                        <el-option label="引用次数" value="citations"/>
+                                        <el-option label="发表时间" value="date"/>
+                                    </el-select>
+                                </el-form-item>
+                            </el-form>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-main>
+        </el-container>
+
+        <!-- 文献分析对话框 -->
+        <el-dialog
+            v-model="analysisDialog.visible"
+            title="文献智能分析"
+            width="80%"
+            :destroy-on-close="true">
+            <el-tabs v-if="analysis">
+                <el-tab-pane label="总体分析">
+                    <div v-html="formatAnalysis(analysis.summary)"></div>
+                </el-tab-pane>
+                <el-tab-pane label="研究方法">
+                    <div v-html="formatAnalysis(analysis.methodology_analysis)"></div>
+                </el-tab-pane>
+                <el-tab-pane label="创新点">
+                    <div v-html="formatAnalysis(analysis.innovation_analysis)"></div>
+                </el-tab-pane>
+                <el-tab-pane label="参考文献分析" v-if="analysis.references_analysis">
+                    <div v-html="formatAnalysis(analysis.references_analysis)"></div>
+                </el-tab-pane>
+            </el-tabs>
+            <div v-else class="analysis-loading">
+                <el-skeleton :rows="10" animated/>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
